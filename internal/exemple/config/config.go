@@ -38,7 +38,7 @@ func Load() (Configurations, error) {
 		return cfg, err
 	}
 
-	cfg.Database.ConnectionString = fmt.Sprintf("mongodb://%s:%s@%s:%s", cfg.Database.Username, cfg.Database.Password, cfg.Database.Url, cfg.Database.Port)
+	cfg.Database.ConnectionString = fmt.Sprintf("mongodb://%s:%s", cfg.Database.Url, cfg.Database.Port)
 
 	return cfg, nil
 }

@@ -24,9 +24,17 @@ func NewBookStore(database config.Database) *BookStore {
 }
 
 func (store *BookStore) Connect(ctx context.Context) error {
-	serverApi := options.ServerAPI(options.ServerAPIVersion1)
+	credential := options.Credential{
+		AuthMechanism: "SCRAM-SHA-256",
+		AuthSource:    "admin",
+		Username:      store.database.Username,
+		Password:      store.database.Password,
+	}
+	clientOpts := options.Client().ApplyURI(store.database.ConnectionString).SetAuth(credential)
 
-	client, err := mongo.Connect(ctx, options.Client().ApplyURI(store.database.ConnectionString).SetServerAPIOptions(serverApi))
+	log.Print("ConnectionString:", store.database.ConnectionString)
+
+	client, err := mongo.Connect(ctx, clientOpts)
 	if err != nil {
 		return err
 	}
