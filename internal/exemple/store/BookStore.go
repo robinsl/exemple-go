@@ -132,20 +132,21 @@ func (store *BookStore) Update(ctx context.Context, id uuid.UUID, params UpdateB
 	}
 	defer store.Disconnect(ctx)
 
+	bookUpdate := bson.D{
+		{"Title", params.Title},
+		{"Page", params.Page},
+		{"UpdatedAt", time.Now().UTC()},
+	}
+
+	_, err = store.collection.UpdateOne(ctx, bson.D{{"_id", id}}, bson.D{{"$set", bookUpdate}})
+	if err != nil {
+		return Book{}, err
+	}
+
 	book, err := store.Read(ctx, id)
 	if err != nil {
 		return Book{}, err
 	}
-
-	book.Title = params.Title
-	book.Page = params.Page
-	book.UpdatedAt = time.Now().UTC()
-
-	_, err = store.collection.UpdateOne(ctx, bson.D{{"_id", id}}, bson.D{{"$set", book}})
-	if err != nil {
-		return Book{}, err
-	}
-
 	return book, nil
 }
 

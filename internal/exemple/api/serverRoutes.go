@@ -10,11 +10,12 @@ func (server *Server) routes() {
 
 	server.router.Route("/books", func(router chi.Router) {
 		router.Get("/", server.handleAllBooks)
-		//router.Post("/", server.handleAddBook)
-		//router.Routes("/{id}", func(router chi.Router) {
-		//	router.Get("/", server.handleGetBook)
-		//	router.Put("/", server.handleUpdateBook)
-		//	router.Delete("/", server.handleDeleteBook)
-		//}
+		router.Post("/", server.handleAddBook)
+		router.Route("/{id}", func(router chi.Router) {
+			router.Use(server.bookCtx)
+			router.Get("/", server.handleGetBook)
+			router.Put("/", server.handleUpdateBook)
+			router.Delete("/", server.handleDeleteBook)
+		})
 	})
 }
