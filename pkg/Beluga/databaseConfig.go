@@ -13,6 +13,7 @@ type DatabaseConfiguration struct {
 	Password         string `envconfig:"MONGO_PASSWORD" required:"true"`
 	ConnectionString string
 	DatabaseName     string `envconfig:"MONGO_DB" required:"true"`
+	Collection       string `envconfig:"MONGO_COLLECTION" required:"true"`
 }
 
 func LoadDatabaseConfiguration(prefix string) (DatabaseConfiguration, error) {
@@ -45,6 +46,11 @@ func LoadDatabaseConfiguration(prefix string) (DatabaseConfiguration, error) {
 	db := os.Getenv(prefix + "_MONGO_DB")
 	if db != "" {
 		cfg.DatabaseName = db
+	}
+
+	collection := os.Getenv(prefix + "_MONGO_COLLECTION")
+	if collection != "" {
+		cfg.Collection = collection
 	}
 
 	cfg.ConnectionString = fmt.Sprintf("mongodb://%s:%s", cfg.Url, cfg.Port)

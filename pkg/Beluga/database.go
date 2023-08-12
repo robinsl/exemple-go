@@ -42,7 +42,7 @@ func (store *Database) Connect(ctx context.Context) error {
 		log.Fatal("ConnectionString:", store.database.ConnectionString)
 	}
 
-	store.Collection = client.Database(store.database.DatabaseName).Collection(store.database.DatabaseName)
+	store.Collection = client.Database(store.database.DatabaseName).Collection(store.database.Collection)
 	log.Print("Connected to database:", store.database.DatabaseName)
 	return nil
 }
