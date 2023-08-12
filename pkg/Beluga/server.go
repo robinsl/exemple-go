@@ -1,11 +1,9 @@
-package api
+package Beluga
 
 import (
 	"context"
 	"fmt"
 	"github.com/go-chi/chi/v5"
-	"goexemples/internal/exemple/config"
-	"goexemples/internal/exemple/store"
 	"log"
 	"net/http"
 	"os"
@@ -14,30 +12,21 @@ import (
 )
 
 type Server struct {
-	config config.HttpServer
-	store  store.BookCrud
-	router *chi.Mux
+	config HttpServerConfiguration
 }
 
-func NewServer(config config.HttpServer, store store.BookCrud) *Server {
+func NewServer(config HttpServerConfiguration) *Server {
 	server := &Server{
 		config: config,
-		store:  store,
-		router: chi.NewRouter(),
 	}
-
-	server.routes()
 
 	return server
 }
 
-func (server *Server) Serve(context context.Context) {
+func (server *Server) Serve(context context.Context, routes chi.Router) {
 	httpServer := http.Server{
-		Addr:         fmt.Sprintf(":%d", server.config.Port),
-		Handler:      server.router,
-		IdleTimeout:  server.config.IdleTimeout,
-		ReadTimeout:  server.config.ReadTimeout,
-		WriteTimeout: server.config.WriteTimeout,
+		Addr:    ":3333",
+		Handler: routes,
 	}
 
 	shutdownCompleted := handleShutdown(func() {
@@ -52,7 +41,6 @@ func (server *Server) Serve(context context.Context) {
 		log.Printf("http.ListenAndServe: %v\n", err)
 	}
 
-	log.Println("Shutdown gracefully")
 }
 
 func handleShutdown(onShutdownSignal func()) <-chan struct{} {

@@ -1,4 +1,4 @@
-package api
+package Beluga
 
 import (
 	"github.com/go-chi/render"
@@ -20,7 +20,6 @@ func (e *ErrResponse) Render(w http.ResponseWriter, r *http.Request) error {
 }
 
 var (
-	SuccessResourceDeleted = &ErrResponse{HTTPStatusCode: 204, StatusText: "Resource was deleted sucessfuly."}
 	ErrNotFound            = &ErrResponse{HTTPStatusCode: 404, StatusText: "Resource not found."}
 	ErrBadRequest          = &ErrResponse{HTTPStatusCode: 400, StatusText: "Bad request"}
 	ErrInternalServerError = &ErrResponse{HTTPStatusCode: 500, StatusText: "Internal Server Error"}
