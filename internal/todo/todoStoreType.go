@@ -12,3 +12,12 @@ type Todo struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
+
+type CreateTodoParams struct {
+	Title string
+}
+
+type UpdateTodoParams struct {
+	Title  string
+	Status bool
+}
