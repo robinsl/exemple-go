@@ -43,7 +43,6 @@ func (store *Database) Connect(ctx context.Context) error {
 	}
 
 	store.Collection = client.Database(store.database.DatabaseName).Collection(store.database.Collection)
-	log.Print("Connected to database:", store.database.DatabaseName)
 	return nil
 }
 
@@ -51,7 +50,5 @@ func (store *Database) Disconnect(ctx context.Context) error {
 	if err := store.client.Disconnect(ctx); err != nil {
 		return err
 	}
-
-	log.Print("Disconnected from database:", store.database.DatabaseName)
 	return nil
 }
