@@ -25,22 +25,18 @@ func NewServer(config HttpServerConfiguration) *Server {
 
 func (server *Server) Serve(context context.Context, routes chi.Router) {
 	httpServer := http.Server{
-		Addr:    ":3333",
-		Handler: routes,
+		Addr:         fmt.Sprintf(":%d", server.config.Port),
+		IdleTimeout:  server.config.IdleTimeout,
+		ReadTimeout:  server.config.ReadTimeout,
+		WriteTimeout: server.config.WriteTimeout,
+		Handler:      routes,
 	}
 
-	shutdownCompleted := handleShutdown(func() {
-		if err := httpServer.Shutdown(context); err != nil {
-			fmt.Printf("Error on shutdown http server: %v", err)
-		}
-	})
-
-	if err := httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-		<-shutdownCompleted
-	} else {
-		log.Printf("http.ListenAndServe: %v\n", err)
+	log.Printf("Server starting on port %d...", server.config.Port)
+	err := httpServer.ListenAndServe()
+	if err != nil {
+		log.Fatal(err)
 	}
-
 }
 
 func handleShutdown(onShutdownSignal func()) <-chan struct{} {

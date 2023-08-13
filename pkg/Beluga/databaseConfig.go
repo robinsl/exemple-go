@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/kelseyhightower/envconfig"
 	"os"
+	"strings"
 )
 
 type DatabaseConfiguration struct {
@@ -18,7 +19,7 @@ type DatabaseConfiguration struct {
 
 func LoadDatabaseConfiguration(prefix string) (DatabaseConfiguration, error) {
 	var cfg DatabaseConfiguration
-
+	prefix = strings.ToUpper(prefix)
 	if err := envconfig.Process("", &cfg); err != nil {
 		return cfg, err
 	}

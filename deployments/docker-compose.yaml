@@ -22,5 +22,15 @@ services:
       ME_CONFIG_MONGODB_ADMINPASSWORD: root
       ME_CONFIG_MONGODB_URL: mongodb://root:root@mongo:27017/
 
+  beluga-api:
+    image: beluga-api
+    build:
+      context: ../
+      dockerfile: build/docker/BelugaApi.Dockerfile
+    depends_on:
+      - mongo
+    ports:
+      - "8080:80"
+
 volumes:
   mongo_data:
