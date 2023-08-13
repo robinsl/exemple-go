@@ -12,7 +12,7 @@ RUN CGO_ENABLED=0 GOOS=linux go build -v -o beluga-api ./cmd/beluga-api
 
 CMD ["ls", "/app"]
 
-FROM alpine:latest as production
+FROM scratch as production
 LABEL stage="production"
 
 WORKDIR /app
