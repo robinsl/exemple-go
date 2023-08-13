@@ -4,7 +4,7 @@ LABEL stage="builder"
 WORKDIR /app
 
 COPY go.mod go.sum ./
-RUN go mod download && go mod verify
+RUN go mod download && go mod tidy && go mod verify
 
 COPY . .
 
