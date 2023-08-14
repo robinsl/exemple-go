@@ -3,9 +3,11 @@ package todo
 import "goexemples/pkg/Beluga"
 
 type TodoService struct {
-	database Beluga.Database
-	store    *TodoStore
-	Routes   *TodoCrudRoutes
+	database   Beluga.Database
+	store      *TodoStore
+	controller *TodoController
+	ApiRoutes  *TodoApiRoutes
+	WebRoutes  *TodoWebRoutes
 }
 
 func NewTodoService() *TodoService {
@@ -15,11 +17,15 @@ func NewTodoService() *TodoService {
 	}
 	database := Beluga.NewDatabase(databaseConfiguration)
 	store := NewTodoStore(database)
-	routes := NewTodoCrudRoutes(store)
+	controller := NewTodoController(store)
+	apiRoutes := NewTodoApiRoutes(controller)
+	webRoutes := NewTodoWebRoutes(controller)
 
 	return &TodoService{
-		database: database,
-		store:    store,
-		Routes:   routes,
+		database:   database,
+		store:      store,
+		controller: controller,
+		ApiRoutes:  apiRoutes,
+		WebRoutes:  webRoutes,
 	}
 }

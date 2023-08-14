@@ -1,0 +1,12 @@
+{{define "item"}}
+<li id="todo_{{.ID}}">
+    <ul>
+        <li>
+            <form>
+                <input type="hidden" name="id" value="{{.ID}}">
+                <span class="{{if .Status }}completed{{end}}" hx-post="/todos-app/toggle" hx-target="#todo_{{.ID}}" hx-swap="outerHTML" hx-trigger="click" data-task="{{.ID}}">{{.Title}}</span>
+            </form>
+        </li>
+    </ul>
+</li>
+{{end}}

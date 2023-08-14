@@ -107,6 +107,30 @@ func (store *TodoStore) Update(ctx context.Context, id uuid.UUID, params UpdateT
 	return todo, nil
 }
 
+func (store *TodoStore) Toggle(ctx context.Context, id uuid.UUID) (Todo, error) {
+	err := store.database.Connect(ctx)
+	if err != nil {
+		return Todo{}, err
+	}
+	defer store.database.Disconnect(ctx)
+
+	var todo Todo
+	err = store.database.Collection.FindOne(ctx, bson.D{{"_id", id}}).Decode(&todo)
+	if err != nil {
+		return Todo{}, err
+	}
+
+	todo.Status = !todo.Status
+	todo.UpdatedAt = time.Now().UTC()
+
+	_, err = store.database.Collection.ReplaceOne(ctx, bson.D{{"_id", id}}, todo)
+	if err != nil {
+		return Todo{}, err
+	}
+
+	return todo, nil
+}
+
 func (store *TodoStore) Delete(ctx context.Context, id uuid.UUID) error {
 	err := store.database.Connect(ctx)
 	if err != nil {

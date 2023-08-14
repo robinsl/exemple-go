@@ -10,36 +10,36 @@ import (
 	"net/http"
 )
 
-type TodoCrudRoutes struct {
-	store *TodoStore
+type TodoApiRoutes struct {
+	controller *TodoController
 }
 
-func NewTodoCrudRoutes(store *TodoStore) *TodoCrudRoutes {
-	return &TodoCrudRoutes{
-		store: store,
+func NewTodoApiRoutes(controller *TodoController) *TodoApiRoutes {
+	return &TodoApiRoutes{
+		controller: controller,
 	}
 }
 
-func (crudRoute *TodoCrudRoutes) Routes() chi.Router {
+func (apiRoutes *TodoApiRoutes) Routes() chi.Router {
 	router := chi.NewRouter()
 	router.Use(render.SetContentType(render.ContentTypeJSON))
 
-	router.Get("/", crudRoute.List)
-	router.Post("/", crudRoute.Create)
+	router.Get("/", apiRoutes.List)
+	router.Post("/", apiRoutes.Create)
 	router.Route("/{id}", func(router chi.Router) {
-		router.Use(crudRoute.ResourceCtx)
-		router.Get("/", crudRoute.Get)
-		router.Put("/", crudRoute.Update)
-		router.Delete("/", crudRoute.Delete)
+		router.Use(apiRoutes.ResourceCtx)
+		router.Get("/", apiRoutes.Get)
+		router.Put("/", apiRoutes.Update)
+		router.Delete("/", apiRoutes.Delete)
 	})
 
 	return router
 }
 
-func (crudRoute *TodoCrudRoutes) ResourceCtx(next http.Handler) http.Handler {
+func (apiRoutes *TodoApiRoutes) ResourceCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 		todoId := chi.URLParam(request, "id")
-		todo, err := crudRoute.store.Read(request.Context(), uuid.MustParse(todoId))
+		todo, err := apiRoutes.controller.Get(request.Context(), uuid.MustParse(todoId))
 		if err != nil {
 			render.Render(writer, request, Beluga.ErrNotFound)
 			return
@@ -50,8 +50,8 @@ func (crudRoute *TodoCrudRoutes) ResourceCtx(next http.Handler) http.Handler {
 	})
 }
 
-func (crudRoute *TodoCrudRoutes) List(writer http.ResponseWriter, request *http.Request) {
-	todos, err := crudRoute.store.List(request.Context())
+func (apiRoutes *TodoApiRoutes) List(writer http.ResponseWriter, request *http.Request) {
+	todos, err := apiRoutes.controller.List(request.Context())
 	if err != nil {
 		render.Render(writer, request, Beluga.ErrInternalServerError)
 		return
@@ -60,7 +60,7 @@ func (crudRoute *TodoCrudRoutes) List(writer http.ResponseWriter, request *http.
 	render.RenderList(writer, request, NewTodoListResponse(todos))
 }
 
-func (crudRoute *TodoCrudRoutes) Create(writer http.ResponseWriter, request *http.Request) {
+func (apiRoutes *TodoApiRoutes) Create(writer http.ResponseWriter, request *http.Request) {
 	var cerateTodoParams CreateTodoParams
 	err := json.NewDecoder(request.Body).Decode(&cerateTodoParams)
 
@@ -69,7 +69,7 @@ func (crudRoute *TodoCrudRoutes) Create(writer http.ResponseWriter, request *htt
 		return
 	}
 
-	todo, err := crudRoute.store.Create(request.Context(), cerateTodoParams)
+	todo, err := apiRoutes.controller.Create(request.Context(), cerateTodoParams)
 	if err != nil {
 		render.Render(writer, request, Beluga.ErrInternalServerError)
 		return
@@ -79,7 +79,7 @@ func (crudRoute *TodoCrudRoutes) Create(writer http.ResponseWriter, request *htt
 	render.Render(writer, request, NewTodoResponse(todo))
 }
 
-func (crudRoute *TodoCrudRoutes) Get(writer http.ResponseWriter, request *http.Request) {
+func (apiRoutes *TodoApiRoutes) Get(writer http.ResponseWriter, request *http.Request) {
 	ctx := request.Context()
 	todo, ok := ctx.Value("todo").(*Todo)
 	if !ok {
@@ -91,7 +91,7 @@ func (crudRoute *TodoCrudRoutes) Get(writer http.ResponseWriter, request *http.R
 
 }
 
-func (crudRoute *TodoCrudRoutes) Update(writer http.ResponseWriter, request *http.Request) {
+func (apiRoutes *TodoApiRoutes) Update(writer http.ResponseWriter, request *http.Request) {
 	ctx := request.Context()
 	todo, ok := ctx.Value("todo").(*Todo)
 	if !ok {
@@ -106,7 +106,7 @@ func (crudRoute *TodoCrudRoutes) Update(writer http.ResponseWriter, request *htt
 		return
 	}
 
-	todoUpdated, err := crudRoute.store.Update(ctx, todo.ID, updateTodoParams)
+	todoUpdated, err := apiRoutes.controller.Update(ctx, todo.ID, updateTodoParams)
 	if err != nil {
 		render.Render(writer, request, Beluga.ErrInternalServerError)
 		return
@@ -115,7 +115,7 @@ func (crudRoute *TodoCrudRoutes) Update(writer http.ResponseWriter, request *htt
 	render.Render(writer, request, NewTodoResponse(todoUpdated))
 }
 
-func (crudRoute *TodoCrudRoutes) Delete(writer http.ResponseWriter, request *http.Request) {
+func (apiRoutes *TodoApiRoutes) Delete(writer http.ResponseWriter, request *http.Request) {
 	ctx := request.Context()
 	todo, ok := ctx.Value("todo").(*Todo)
 	if !ok {
@@ -123,7 +123,7 @@ func (crudRoute *TodoCrudRoutes) Delete(writer http.ResponseWriter, request *htt
 		return
 	}
 
-	err := crudRoute.store.Delete(ctx, todo.ID)
+	err := apiRoutes.controller.Delete(ctx, todo.ID)
 	if err != nil {
 		render.Render(writer, request, Beluga.ErrInternalServerError)
 		return
