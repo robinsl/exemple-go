@@ -1,22 +1,49 @@
 package todo
 
 import (
-	"encoding/json"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
 	"github.com/google/uuid"
 	"goexemples/pkg/Beluga"
-	"html/template"
 	"net/http"
 )
 
 type TodoWebRoutes struct {
-	controller *TodoController
+	controller        *TodoController
+	pageListTemplater *Beluga.Templater
+	listTemplater     *Beluga.Templater
+	listItemTemplater *Beluga.Templater
 }
 
 func NewTodoWebRoutes(controller *TodoController) *TodoWebRoutes {
+	pageListData := Beluga.PageData{
+		PageHeader: Beluga.PageHeader{
+			Title: "Todo List",
+		},
+	}
+	pageTemplater := Beluga.
+		NewTemplater("default").
+		AddComponent("todo/list").
+		AddComponent("todo/mainContent").
+		SetTemplateName("Layout").
+		SetPageData(pageListData).
+		Freeze()
+	listTemplater := Beluga.
+		NewTemplater("default").
+		AddComponent("todo/list").
+		SetTemplateName("TodoList").
+		Freeze()
+	listItemTemplater := Beluga.
+		NewTemplater("default").
+		AddComponent("todo/list").
+		SetTemplateName("TodoListItem").
+		Freeze()
+
 	return &TodoWebRoutes{
-		controller: controller,
+		controller:        controller,
+		pageListTemplater: pageTemplater,
+		listTemplater:     listTemplater,
+		listItemTemplater: listItemTemplater,
 	}
 }
 
@@ -25,42 +52,9 @@ func (webRoutes *TodoWebRoutes) Routes() chi.Router {
 	router.Use(render.SetContentType(render.ContentTypeJSON))
 
 	router.Get("/", webRoutes.List)
-	router.Post("/", webRoutes.Create)
 	router.Post("/toggle", webRoutes.Toggle)
 
 	return router
-}
-
-func RenderPage(writer http.ResponseWriter, request *http.Request, templatePath string, data interface{}) {
-	defaultLayoutPath := "internal/todo/templates/layouts/default.gohtml"
-	writer.Header().Set("Content-Type", "text/html; charset=utf-8")
-	writer.WriteHeader(http.StatusOK)
-
-	tmpl, err := template.ParseFiles(defaultLayoutPath, templatePath, "internal/todo/templates/pages/todo-list-item.gohtml")
-	if err != nil {
-		render.Render(writer, request, Beluga.ErrNotFound)
-		return
-	}
-
-	err = tmpl.ExecuteTemplate(writer, "layout", data)
-	if err != nil {
-		render.Render(writer, request, Beluga.ErrInternalServerError)
-		return
-	}
-}
-
-func RenderListItem(writer http.ResponseWriter, request *http.Request, data interface{}) {
-	tmpl, err := template.ParseFiles("internal/todo/templates/pages/todo-list-item.gohtml")
-	if err != nil {
-		render.Render(writer, request, Beluga.ErrNotFound)
-		return
-	}
-
-	err = tmpl.ExecuteTemplate(writer, "item", data)
-	if err != nil {
-		render.Render(writer, request, Beluga.ErrInternalServerError)
-		return
-	}
 }
 
 func (webRoutes *TodoWebRoutes) List(writer http.ResponseWriter, request *http.Request) {
@@ -70,7 +64,11 @@ func (webRoutes *TodoWebRoutes) List(writer http.ResponseWriter, request *http.R
 		return
 	}
 
-	RenderPage(writer, request, "internal/todo/templates/pages/todo-list.gohtml", todos)
+	if request.Header.Get("HX-Request") == "true" {
+		webRoutes.listTemplater.Render(writer, request, todos)
+	} else {
+		webRoutes.pageListTemplater.Render(writer, request, todos)
+	}
 }
 
 func (webRoutes *TodoWebRoutes) Toggle(writer http.ResponseWriter, request *http.Request) {
@@ -80,24 +78,6 @@ func (webRoutes *TodoWebRoutes) Toggle(writer http.ResponseWriter, request *http
 		render.Render(writer, request, Beluga.ErrInternalServerError)
 		return
 	}
-	RenderListItem(writer, request, todo)
-}
 
-func (webRoutes *TodoWebRoutes) Create(writer http.ResponseWriter, request *http.Request) {
-	var cerateTodoParams CreateTodoParams
-	err := json.NewDecoder(request.Body).Decode(&cerateTodoParams)
-
-	if err != nil {
-		render.Render(writer, request, Beluga.ErrInternalServerError)
-		return
-	}
-
-	todo, err := webRoutes.controller.Create(request.Context(), cerateTodoParams)
-	if err != nil {
-		render.Render(writer, request, Beluga.ErrInternalServerError)
-		return
-	}
-
-	render.Status(request, http.StatusCreated)
-	render.Render(writer, request, NewTodoResponse(todo))
+	webRoutes.listItemTemplater.Render(writer, request, todo)
 }

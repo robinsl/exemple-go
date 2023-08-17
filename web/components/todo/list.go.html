@@ -1,0 +1,20 @@
+{{ block "TodoList" . }}
+    <ul class="list-group">
+        {{ range . }}
+            {{ template "TodoListItem" . }}
+        {{ end }}
+    </ul>
+{{ end }}
+
+{{ block "TodoListItem" . }}
+    <li id="todo_{{.ID}}" class="list-group-item {{if .Status }}completed{{end}}">
+        <form>
+            <input type="hidden" name="id" value="{{.ID}}">
+            <span hx-post="/todos-app/toggle"
+                  hx-target="#todo_{{.ID}}"
+                  hx-swap="outerHTML"
+                  hx-trigger="click"
+                  class="empty_fill">{{.Title}}</span>
+        </form>
+    </li>
+{{ end }}

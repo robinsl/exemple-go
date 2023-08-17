@@ -1,0 +1,7 @@
+{{ define "Layout" }}
+{{ template "header" .PageHeader }}
+<div class="container my-5">
+    {{ template "MainContent" .Data }}
+</div>
+{{ template "footer" }}
+{{ end }}
