@@ -6,6 +6,7 @@ import (
 	"github.com/google/uuid"
 	"goexemples/pkg/Beluga"
 	"net/http"
+	"strconv"
 )
 
 type TodoWebRoutes struct {
@@ -51,10 +52,37 @@ func (webRoutes *TodoWebRoutes) Routes() chi.Router {
 	router := chi.NewRouter()
 	router.Use(render.SetContentType(render.ContentTypeJSON))
 
-	router.Get("/", webRoutes.List)
-	router.Post("/toggle", webRoutes.Toggle)
-
+	router.Get("/", webRoutes.ListPage)
+	router.Route("/hx", func(router chi.Router) {
+		router.Get("/", webRoutes.List)
+		router.Post("/toggle", webRoutes.Toggle)
+		router.Get("/count-active", webRoutes.CountActive)
+	})
 	return router
+}
+
+func (webRoutes *TodoWebRoutes) ListPage(writer http.ResponseWriter, request *http.Request) {
+	todos, err := webRoutes.controller.List(request.Context())
+	if err != nil {
+		render.Render(writer, request, Beluga.ErrInternalServerError)
+		return
+	}
+
+	count, err := webRoutes.controller.GetAllActive(request.Context())
+	if err != nil {
+		render.Render(writer, request, Beluga.ErrInternalServerError)
+		return
+	}
+
+	responseData := struct {
+		Todos []Todo
+		Count int
+	}{
+		Todos: todos,
+		Count: len(count),
+	}
+
+	webRoutes.pageListTemplater.Render(writer, request, responseData)
 }
 
 func (webRoutes *TodoWebRoutes) List(writer http.ResponseWriter, request *http.Request) {
@@ -64,11 +92,13 @@ func (webRoutes *TodoWebRoutes) List(writer http.ResponseWriter, request *http.R
 		return
 	}
 
-	if request.Header.Get("HX-Request") == "true" {
-		webRoutes.listTemplater.Render(writer, request, todos)
-	} else {
-		webRoutes.pageListTemplater.Render(writer, request, todos)
+	responseData := struct {
+		Todos []Todo
+	}{
+		Todos: todos,
 	}
+
+	webRoutes.listTemplater.Render(writer, request, responseData)
 }
 
 func (webRoutes *TodoWebRoutes) Toggle(writer http.ResponseWriter, request *http.Request) {
@@ -79,5 +109,17 @@ func (webRoutes *TodoWebRoutes) Toggle(writer http.ResponseWriter, request *http
 		return
 	}
 
+	writer.Header().Set("HX-Trigger", "todo-toggled")
 	webRoutes.listItemTemplater.Render(writer, request, todo)
+}
+
+func (webRoutes *TodoWebRoutes) CountActive(writer http.ResponseWriter, request *http.Request) {
+	activeList, err := webRoutes.controller.GetAllActive(request.Context())
+	if err != nil {
+		render.Render(writer, request, Beluga.ErrInternalServerError)
+		return
+	}
+
+	render.Status(request, http.StatusOK)
+	render.PlainText(writer, request, strconv.Itoa(len(activeList)))
 }

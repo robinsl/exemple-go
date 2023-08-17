@@ -38,6 +38,26 @@ func (store *TodoStore) List(ctx context.Context) ([]Todo, error) {
 	return todos, nil
 }
 
+func (store *TodoStore) CountActive(ctx context.Context) ([]Todo, error) {
+	err := store.database.Connect(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer store.database.Disconnect(ctx)
+
+	cursor, err := store.database.Collection.Find(ctx, bson.D{{"status", false}})
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	var todos []Todo
+	if err = cursor.All(ctx, &todos); err != nil {
+		return nil, err
+	}
+	return todos, nil
+}
+
 func (store *TodoStore) Create(ctx context.Context, params CreateTodoParams) (Todo, error) {
 	err := store.database.Connect(ctx)
 	if err != nil {

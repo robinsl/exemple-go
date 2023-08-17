@@ -19,6 +19,10 @@ func (controller *TodoController) List(context context.Context) ([]Todo, error) 
 	return controller.store.List(context)
 }
 
+func (controller *TodoController) GetAllActive(context context.Context) ([]Todo, error) {
+	return controller.store.CountActive(context)
+}
+
 func (controller *TodoController) Create(context context.Context, params CreateTodoParams) (Todo, error) {
 	return controller.store.Create(context, params)
 }

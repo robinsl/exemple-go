@@ -1,6 +1,10 @@
 {{ block "TodoList" . }}
+    <h3>
+        Active todos:
+        <span hx-get="/todos-app/hx/count-active" hx-trigger="todo-toggled from:body">{{.Count}}</span>
+    </h3>
     <ul class="list-group">
-        {{ range . }}
+        {{ range .Todos }}
             {{ template "TodoListItem" . }}
         {{ end }}
     </ul>
@@ -10,7 +14,7 @@
     <li id="todo_{{.ID}}" class="list-group-item {{if .Status }}completed{{end}}">
         <form>
             <input type="hidden" name="id" value="{{.ID}}">
-            <span hx-post="/todos-app/toggle"
+            <span hx-post="/todos-app/hx/toggle"
                   hx-target="#todo_{{.ID}}"
                   hx-swap="outerHTML"
                   hx-trigger="click"
