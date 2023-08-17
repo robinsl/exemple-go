@@ -5,6 +5,7 @@ import (
 	"github.com/go-chi/render"
 	"github.com/google/uuid"
 	"goexemples/pkg/Beluga"
+	"log"
 	"net/http"
 	"strconv"
 )
@@ -110,10 +111,21 @@ func (webRoutes *TodoWebRoutes) Toggle(writer http.ResponseWriter, request *http
 	}
 
 	writer.Header().Set("HX-Trigger", "todo-toggled")
+	http.SetCookie(writer, &http.Cookie{
+		Name:  "todo-toggled",
+		Path:  "/",
+		Value: id,
+	})
 	webRoutes.listItemTemplater.Render(writer, request, todo)
 }
 
 func (webRoutes *TodoWebRoutes) CountActive(writer http.ResponseWriter, request *http.Request) {
+	c, err := request.Cookie("todo-toggled")
+	if err != nil {
+		log.Println(err)
+	}
+	log.Printf("Loading %s from cookie, Value is: %s", c.Name, c.Value)
+
 	activeList, err := webRoutes.controller.GetAllActive(request.Context())
 	if err != nil {
 		render.Render(writer, request, Beluga.ErrInternalServerError)
