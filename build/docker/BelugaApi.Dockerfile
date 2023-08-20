@@ -18,6 +18,8 @@ LABEL stage="production"
 WORKDIR /app
 
 COPY --from=builder /app/beluga-api .
+COPY --from=builder /app/website ./website
+COPY --from=builder /app/web ./web
 COPY --from=builder /app/configs/local.env ./configs/.env
 
 EXPOSE 80
