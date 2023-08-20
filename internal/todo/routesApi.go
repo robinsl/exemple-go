@@ -61,15 +61,15 @@ func (apiRoutes *TodoApiRoutes) List(writer http.ResponseWriter, request *http.R
 }
 
 func (apiRoutes *TodoApiRoutes) Create(writer http.ResponseWriter, request *http.Request) {
-	var cerateTodoParams CreateTodoParams
-	err := json.NewDecoder(request.Body).Decode(&cerateTodoParams)
+	var createTodoParams CreateTodoParams
+	err := json.NewDecoder(request.Body).Decode(&createTodoParams)
 
 	if err != nil {
 		render.Render(writer, request, Beluga.ErrInternalServerError)
 		return
 	}
 
-	todo, err := apiRoutes.controller.Create(request.Context(), cerateTodoParams)
+	todo, err := apiRoutes.controller.Create(request.Context(), createTodoParams)
 	if err != nil {
 		render.Render(writer, request, Beluga.ErrInternalServerError)
 		return

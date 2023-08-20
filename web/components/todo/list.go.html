@@ -1,9 +1,22 @@
 {{ block "TodoList" . }}
+    <h2>New Todo</h2>
+    <form>
+        <div class="form-group">
+            <label for="todo-title">Title</label>
+            <input type="text" class="form-control" id="todo-title" name="title" placeholder="Enter title">
+        </div>
+        <button type="submit"
+                class="btn btn-primary"
+                hx-post="/todos-app/hx/"
+                hx-target="#todo-list"
+                hx-trigger="click"
+                hx-swap="afterbegin">Add</button>
+    </form>
     <h3>
         Active todos:
         <span hx-get="/todos-app/hx/count-active" hx-trigger="todo-toggled from:body">{{.Count}}</span>
     </h3>
-    <ul class="list-group">
+    <ul id="todo-list" class="list-group">
         {{ range .Todos }}
             {{ template "TodoListItem" . }}
         {{ end }}

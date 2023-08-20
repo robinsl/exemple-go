@@ -56,6 +56,7 @@ func (webRoutes *TodoWebRoutes) Routes() chi.Router {
 	router.Get("/", webRoutes.ListPage)
 	router.Route("/hx", func(router chi.Router) {
 		router.Get("/", webRoutes.List)
+		router.Post("/", webRoutes.Create)
 		router.Post("/toggle", webRoutes.Toggle)
 		router.Get("/count-active", webRoutes.CountActive)
 	})
@@ -100,6 +101,27 @@ func (webRoutes *TodoWebRoutes) List(writer http.ResponseWriter, request *http.R
 	}
 
 	webRoutes.listTemplater.Render(writer, request, responseData)
+}
+
+func (webRoutes *TodoWebRoutes) Create(writer http.ResponseWriter, request *http.Request) {
+	var createTodoParams CreateTodoParams
+	err := request.ParseForm()
+	if err != nil {
+		log.Println(err)
+		render.Render(writer, request, Beluga.ErrInternalServerError)
+		return
+	}
+
+	createTodoParams.Title = request.FormValue("title")
+
+	todo, err := webRoutes.controller.Create(request.Context(), createTodoParams)
+	if err != nil {
+		render.Render(writer, request, Beluga.ErrInternalServerError)
+		return
+	}
+
+	writer.Header().Set("HX-Trigger", "todo-created")
+	webRoutes.listItemTemplater.Render(writer, request, todo)
 }
 
 func (webRoutes *TodoWebRoutes) Toggle(writer http.ResponseWriter, request *http.Request) {
