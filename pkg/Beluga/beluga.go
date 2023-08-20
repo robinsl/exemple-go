@@ -5,6 +5,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"log"
+	"net/http"
 )
 
 type BelugaHandler interface {
@@ -43,6 +44,11 @@ func (b *beluga) UseDefaultMiddleWare() {
 
 func (b beluga) MountRoutes(path string, handler BelugaHandler) {
 	b.Route.Mount(path, handler.Routes())
+}
+
+func (b *beluga) MountStatic() {
+	fs := http.FileServer(http.Dir("website/static"))
+	b.Route.Handle("/static/*", http.StripPrefix("/static/", fs))
 }
 
 func (b *beluga) Serve() {

@@ -16,5 +16,7 @@ func main() {
 	beluga.MountRoutes("/todos", TodoService.ApiRoutes)
 	beluga.MountRoutes("/todos-app", TodoService.WebRoutes)
 	beluga.MountRoutes("/books", BookService.Routes)
+
+	beluga.MountStatic()
 	beluga.Serve()
 }
